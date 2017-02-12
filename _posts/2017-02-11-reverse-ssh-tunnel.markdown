@@ -58,13 +58,21 @@ Neither of these ([so far as I know](https://github.com/pagekite/PyPagekite/issu
 
 #### As close as you can get to free ####
 
-My answer here is: reverse SSH tunnel. Cloud computing has driven the price of VPSs into the ground. Whether it be with [DigitalOcean](https://www.linode.com/), [AWS](https://aws.amazon.com/), or [Linode](https://www.linode.com/) (see comparison [here](https://joshtronic.com/2016/12/01/ten-dollar-showdown-linode-vs-digitalocean-vs-lightsail/)), you can pick up a pretty beefy machine for 10$ per month of runtime. DigitalOcen even offers a 5$ tier, which is pretty astounding. With that taken into consideration, it's cheaper (or nearly the same price) to get a cloud instance than it is to pay for something like ngrok or Pagekite. You need barely anything computing resource wise to run this kind of set up.
+I think there are two workable options. One would be to set up a publicly accessible [VPN](https://en.wikipedia.org/wiki/Virtual_private_network) server, the other is to set up a publicly accesible SSH server. All else held equal, I imagine the VPN server would be the best option, but I've never done that before. SSH servers are present by default on many Linux distributions, so most of the work is done.
+
+With that said, my answer here is: reverse SSH tunnel. Cloud computing has driven the price of [VPSs](https://en.wikipedia.org/wiki/Virtual_private_server) into the ground. Whether it be with [DigitalOcean](https://www.linode.com/), [AWS](https://aws.amazon.com/), or [Linode](https://www.linode.com/) (see comparison [here](https://joshtronic.com/2016/12/01/ten-dollar-showdown-linode-vs-digitalocean-vs-lightsail/)), you can pick up a pretty beefy machine for 10$ per month of runtime. DigitalOcen even offers a 5$ tier, which is pretty astounding. With that taken into consideration, it's cheaper (or nearly the same price) to get a cloud instance than it is to pay for something like ngrok or Pagekite. You need barely anything computing resource wise to run this kind of set up.
+
+There are two pieces to this, I'll refer to them as the "public computer" (cloud instance") and the "private computer" (the one you're wanting to expose).
+
+#### Public computer ####
+
+The public computer set up is pretty straightforward:
 
 1. Already have, or sign up for a cloud instance with [DigitalOcean](https://www.linode.com/), [AWS](https://aws.amazon.com/), [Linode](https://www.linode.com/) or similar
 
 1. Provision the machine with some kind of Linux (e.g. Ubuntu 16.04)
 
-1. Know enough about securing a publicly accessible machine that you don't need to be told how to (you were already exposing something to the internet, so presumably you have some idea)
+1. Know enough about securing a publicly accessible machine that you don't need to be told how to (you were already exposing something to the internet, so presumably you have some idea). You can look at [this guide](https://www.linode.com/docs/security/securing-your-server) for a quick intro.
 
 1. SSH into it `ssh user@cloud-instance-ip.totallyreal.com`
 
@@ -75,8 +83,31 @@ My answer here is: reverse SSH tunnel. Cloud computing has driven the price of V
     1. `sudo sed -i '$a GatewayPorts clientspecified' /etc/ssh/sshd_config`
     1. Restart the SSH server: `sudo service ssh restart` 
     <br><br>
+
+And that's it. The public computer is ready to act as a gateway to your private computer. All it needs to do is stay accessible.
+
+#### Private computer ####
     
-1. Back on the machine running the program you want to expose to the public, create your reverse SSL tunnels. Only you will know what this looks like for your circumstances, for me it was as follows:
+1. First things first, you're going to want to ensure your private machine can communicate with the public machine securely. The easiest way to do this is with [SSH keys](https://www.digitalocean.com/community/tutorials/ssh-essentials-working-with-ssh-servers-clients-and-keys) - they'll allow the computers to connect without having to type in a username and password everytime. If anything here is confusing, follow the better written guide [here](https://www.digitalocean.com/community/tutorials/ssh-essentials-working-with-ssh-servers-clients-and-keys).
+
+    1. Ensure you have SSH installed (as well as autossh, we'll be using that): `sudo apt install ssh autossh`
+    1. Ensure you're logged in as the user you'd like to connect to the public computer with
+    1. Create a private/public key pair to use for authentication with the public computer
+        1. `ssh-keygen`
+        1. You can use the defaults for all the prompts or change them as you wish
+        1. This will yield a key pair - `~/.ssh/id_rsa` (the private part that you never share with anyone) and `~/.ssh/id_rsa.pub` (the public part, designed to be shared)
+    1. Add the public key that corresponds to your private machine to the "authorized keys" on the public machine
+        1. `ssh-copy-id user@cloud-instance-ip.totallyreal.com`
+1. You can now test the connection with your own configuration, for me it was running on port `7080`:
+    1. `ssh -R "[::]:7080:localhost:7080" -N root@23.239.2.79`
+    1. This sets up a reverse tunnel from the public machine's port `7080` to the private machine's port `7080`
+1. Using SSH directly works, but for a more robust and persistent connection we'll use [auttossh](http://www.harding.motd.ca/autossh/). It's basically just a managed SSH connection, perfect for this use case. 
+
+Back on the machine running the program you want to expose to the public, create your reverse SSL tunnels. Only you will know what this looks like for your circumstances, for me it was as follows:
 {% highlight bash %}
 ssh -R "[::]:7080:localhost:7080" -R "[::]:7445:localhost:7445" -N root@23.239.2.79
 {% endhighlight %}
+
+#### Improvements
+
+- Add a separate user for autossh
