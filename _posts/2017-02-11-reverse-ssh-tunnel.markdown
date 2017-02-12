@@ -55,7 +55,7 @@ Connections                   ttl     opn     rt1     rt5     p50     p90
 Similarly, [Pagekite](https://pagekite.net/) is easy to get up and running. The difference there is the free tier of ngrok doesn't expire, while Pagekite's does.
 
 Neither of these ([so far as I know](https://github.com/pagekite/PyPagekite/issues/59)) offers any way to get many ports on the same domain (or subdomain). You can have many ports fed from a single machine, but they're made accessible on separate subdomains. This part didn't work for me.
-
+<br><br>
 #### As close as you can get to free ####
 
 I think there are two workable options. One would be to set up a publicly accessible [VPN](https://en.wikipedia.org/wiki/Virtual_private_network) server, the other is to set up a publicly accesible SSH server. All else held equal, I imagine the VPN server would be the best option, but I've never done that before. SSH servers are present by default on many Linux distributions, so most of the work is done.
