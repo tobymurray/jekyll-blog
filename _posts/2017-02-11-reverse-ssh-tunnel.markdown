@@ -5,6 +5,12 @@ date:   2017-02-11 00:00:00 -0500
 categories: jekyll update
 ---
 
+# Contents
+{:.no_toc}
+
+*  
+{:toc}
+
 ### Who is Xplornet ###
 
 You can check [their site](https://www.xplornet.com/who-we-are/), but they're a nation-wide Internet service provider in Canada. They generally focus on rural areas and offer both satellite and fixed wireless products (previously 4G, but now LTE). If you have experience with satellite Internet, you're likely aware it's at just about the bottom of the list for desirable connections. Its typically expensive, has low bandwidth, restrictive data caps, and high latency. Contrast that with Xplornet's fixed wireless offerings which historically have been expensive, have relatively low bandwidth, restrictive data caps, but acceptable latency! We jumped at the opportunity to upgrade from 4G to LTE - the pitch was "Up to<sup>1,2,3</sup> 25 Mbps down and 1 up with a 500GB data cap for 99$/month". If you live in an urban area you may find that surprising, but that is in fact a pretty decent deal. We were paying about 10$/month less for 10/1 connection and a 100GB data cap. So we switched (eventually, after Xplornet's labored roll out).
