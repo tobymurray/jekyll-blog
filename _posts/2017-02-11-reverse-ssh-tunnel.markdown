@@ -61,14 +61,22 @@ Neither of these ([so far as I know](https://github.com/pagekite/PyPagekite/issu
 My answer here is: reverse SSH tunnel. Cloud computing has driven the price of VPSs into the ground. Whether it be with [DigitalOcean](https://www.linode.com/), [AWS](https://aws.amazon.com/), or [Linode](https://www.linode.com/) (see comparison [here](https://joshtronic.com/2016/12/01/ten-dollar-showdown-linode-vs-digitalocean-vs-lightsail/)), you can pick up a pretty beefy machine for 10$ per month of runtime. DigitalOcen even offers a 5$ tier, which is pretty astounding. With that taken into consideration, it's cheaper (or nearly the same price) to get a cloud instance than it is to pay for something like ngrok or Pagekite. You need barely anything computing resource wise to run this kind of set up.
 
 1. Already have, or sign up for a cloud instance with [DigitalOcean](https://www.linode.com/), [AWS](https://aws.amazon.com/), [Linode](https://www.linode.com/) or similar
+
 1. Provision the machine with some kind of Linux (e.g. Ubuntu 16.04)
+
 1. Know enough about securing a publicly accessible machine that you don't need to be told how to (you were already exposing something to the internet, so presumably you have some idea)
+
 1. SSH into it `ssh user@cloud-instance-ip.totallyreal.com`
 
 1. Make sure it's up to date - `sudo apt update && sudo apt upgrade`
-1. Here's the tricky part. it took me more than an hour to find out why I could only see the tunneled ports from the remote machine. You have to open up your cloud machine so that the SSH tunnels are exposed to the world at large (hopefully not everybody, you have a firewall set up - right?). This is possible by modifying `/etc/ssh/sshd_config` - note, you'll likely have a `ssh_config` as well. That file is for the cloud machine's clients, we need to change the settings for the cloud machine as a server - `sshd_config`. Anyways,
+
+1. Here's the tricky part. It took me more than an hour to find out why I could only see the tunneled ports from the remote machine. Feel free to read up on the [documentation](https://www.freebsd.org/cgi/man.cgi?sshd_config(5)). You have to open up your cloud machine so that the SSH tunnels are exposed to the world at large (hopefully not everybody, you have a firewall set up - right?). This is possible by modifying `/etc/ssh/sshd_config` - note, you'll likely have a `ssh_config` as well. That file is for the cloud machine's clients, we need to change the settings for the cloud machine as a server - `sshd_config`. Anyways,
+
     1. `sudo sed -i '$a GatewayPorts clientspecified' /etc/ssh/sshd_config`
-    1. Restart the SSH server: `sudo service ssh restart`
-  
+    1. Restart the SSH server: `sudo service ssh restart` 
+    <br><br>
+    
 1. Back on the machine running the program you want to expose to the public, create your reverse SSL tunnels. Only you will know what this looks like for your circumstances, for me it was as follows:
-    1.  `ssh -R "[::]:7080:localhost:7080" -R "[::]:7445:localhost:7445" -N root@23.239.2.79`
+{% highlight bash %}
+ssh -R "[::]:7080:localhost:7080" -R "[::]:7445:localhost:7445" -N root@23.239.2.79
+{% endhighlight %}
