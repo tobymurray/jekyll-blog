@@ -47,12 +47,10 @@ ngrok by @inconshreveable
                                                                           
 Session Status                online                                      
 Version                       2.1.18                                      
-Region                        United States (us)                          
-Web Interface                 http://127.0.0.1:4040                       
-Forwarding                    http://7f072084.ngrok.io -> localhost:7080  
-Forwarding                    http://97e4e5e9.ngrok.io -> localhost:7445  
-Forwarding                    https://7f072084.ngrok.io -> localhost:7080 
-Forwarding                    https://97e4e5e9.ngrok.io -> localhost:7445 
+Region                        United States (us)                                               
+Web Interface                 http://127.0.0.1:4040
+Forwarding                    http://d75b33b2.ngrok.io -> localhost:80
+Forwarding                    https://d75b33b2.ngrok.io -> localhost:80
                                                                           
 Connections                   ttl     opn     rt1     rt5     p50     p90 
                               0       0       0.00    0.00    0.00    0.00
