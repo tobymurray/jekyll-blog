@@ -102,16 +102,51 @@ And that's it. The public computer is ready to act as a gateway to your private 
         1. This will yield a key pair - `~/.ssh/id_rsa` (the private part that you never share with anyone) and `~/.ssh/id_rsa.pub` (the public part, designed to be shared)
     1. Add the public key that corresponds to your private machine to the "authorized keys" on the public machine
         1. `ssh-copy-id user@cloud-instance-ip.totallyreal.com`
-1. You can now test the connection with your own configuration, for me it was running on port `7080`:
+2. You can now test the connection with your own configuration, for me it was running on port `7080`:
     1. `ssh -R "[::]:7080:localhost:7080" -N root@23.239.2.79`
     1. This sets up a reverse tunnel from the public machine's port `7080` to the private machine's port `7080`
-1. Using SSH directly works, but for a more robust and persistent connection we'll use [auttossh](http://www.harding.motd.ca/autossh/). It's basically just a managed SSH connection, perfect for this use case. 
+3. Using SSH directly works, but for a more robust and persistent connection we'll use [auttossh](http://www.harding.motd.ca/autossh/). It's basically just a managed SSH connection, perfect for this use case.
+    1. To make this easy, we'll use a [SSH client config file](https://linux.die.net/man/5/ssh_config). In `~/.ssh/config`, put the details of your connection. Mine, for example, looked something like this:
 
-Back on the machine running the program you want to expose to the public, create your reverse SSL tunnels. Only you will know what this looks like for your circumstances, for me it was as follows:
 {% highlight bash %}
-ssh -R "[::]:7080:localhost:7080" -R "[::]:7445:localhost:7445" -N root@23.239.2.79
+HOST unifi-video-tunnel
+    HostName            li123-45.members.linode.com
+    User                toby
+    Port                22
+    IdentityFile        /home/toby/.ssh/id_rsa
+    ServerAliveInterval 30
+    ServerAliveCountMax 3
+    RemoteForward       :7080 localhost:7080
+    RemoteForward       :7443 localhost:7443
+    RemoteForward       :7445 localhost:7445
+    RemoteForward       :7446 localhost:7446
 {% endhighlight %}
 
-#### Improvements
+4. To add yet another layer, everything will be easier with a service wrapping around the autossh session. In Ubuntu 16, that would be a systemd service.
+    1. Add a `.service` file that reflects the application to `/etc/systemd/system/` - I called mine `autossh-unifi-video.service`
+    1. Flesh out the service to invoke autossh for you
+
+{% highlight bash %}
+[Unit] 
+Description=Make Unifi Video available remotely
+After=network.target 
+
+[Service] 
+User=toby
+ExecStart=/usr/bin/autossh -M 0 -N unifi-video-tunnel
+
+[Install] 
+WantedBy=multi-user.target]
+{% endhighlight %}    
+
+5. As with any service, get it moving:
+    1. `systemctl daemon-reload`
+    1. `systemctl enable autossh-unifi-video.service`
+    1. `systemctl start autossh-unifi-video.service`
+
+And that's pretty much it! The reverse tunnel should be working, and everything you've mapped should be exposed to the public.
+
+### Improvements
 
 - Add a separate user for autossh
+- Use a VPN solution instead of this
